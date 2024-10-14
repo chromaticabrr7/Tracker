@@ -7,7 +7,8 @@ function App() {
   const [deploymentState, setDeploymentState] = useState({
     state: 'READY',
     stageReadout: 'Ready to deploy',
-    progress: [false, false, false, false],
+    environment: ['dev', 'staging', 'approval', 'prod'],
+    progress: ['incomplete', 'incomplete', 'incomplete', 'incomplete'],
     progressChipLabel: 'Ready to deploy',
     chipBackgroundColor: '#F1F1F1',
     chipTextColor: '#4C4C4C',
@@ -19,8 +20,8 @@ function App() {
       setDeploymentState(prevState => ({
           ...prevState,
           state: 'DEPLOYING',
-          stageReadout: 'Deploying to dev and staging',
-          progress: [true, false, false, false],
+          stageReadout: 'Deploying to dev',
+          progress: ['pending', 'incomplete', 'incomplete', 'incomplete'],
           progressChipLabel: 'Deploying',
           chipBackgroundColor: '#F9F2D4',
           chipTextColor: '#AE810B',
@@ -31,16 +32,31 @@ function App() {
       setTimeout(() => {
           setDeploymentState(prevState => ({
               ...prevState,
-              state: 'APPROVAL',
-              stageReadout: 'Manual approval',
-              progress: [true, true, false, false],
-              progressChipLabel: 'Needs approval',
+              state: 'DEPLOYING',
+              stageReadout: 'Deploying to staging',
+              progress: ['complete', 'pending', 'incomplete', 'incomplete'],
+              progressChipLabel: 'Deploying',
               chipBackgroundColor: '#F9F2D4',
               chipTextColor: '#AE810B',
               chipBackgroundHoverColor: '#e7ddb0',
               pointerEventsState: 'none'
           }));
+
+          setTimeout(() => {
+            setDeploymentState(prevState => ({
+                ...prevState,
+                state: 'APPROVAL',
+                stageReadout: 'Manual approval',
+                progress: ['complete', 'complete', 'pending', 'incomplete'],
+                progressChipLabel: 'Needs approval',
+                chipBackgroundColor: '#F9F2D4',
+                chipTextColor: '#AE810B',
+                chipBackgroundHoverColor: '#e7ddb0',
+                pointerEventsState: 'none'
+            }));
+        }, 3000);
       }, 2000);
+
   }, []);
 
   const handleApproval = useCallback(() => {
@@ -48,8 +64,8 @@ function App() {
           ...prevState,
           state: 'COMPLETING',
           stageReadout: 'Deploying to prod',
-          progress: [true, true, true, false],
-          progressChipLabel: 'Completing deploy',
+          progress: ['complete', 'complete', 'complete', 'pending'],
+          progressChipLabel: 'Deploying',
           chipBackgroundColor: '#F9F2D4',
           chipTextColor: '#AE810B',
           chipBackgroundHoverColor: '#e7ddb0',
@@ -59,16 +75,31 @@ function App() {
       setTimeout(() => {
           setDeploymentState(prevState => ({
               ...prevState,
-              state: 'COMPLETED',
-              stageReadout: 'Deploy successful',
-              progress: [true, true, true, true],
-              progressChipLabel: 'Completed',
-              chipBackgroundColor: '#CFE9C5',
-              chipTextColor: '#37804D',
-              chipBackgroundHoverColor: '#b5d6a8',
+              state: 'WRAPPING',
+              stageReadout: 'Tying up loose ends',
+              progress: ['complete', 'complete', 'complete', 'pending'],
+              progressChipLabel: 'Wrapping up',
+              chipBackgroundColor: '#F9F2D4',
+              chipTextColor: '#AE810B',
+              chipBackgroundHoverColor: '#e7ddb0',
               pointerEventsState: 'none'
           }));
-      }, 4000);
+
+          setTimeout(() => {
+              setDeploymentState(prevState => ({
+                  ...prevState,
+                  state: 'COMPLETED',
+                  stageReadout: 'Successfully deployed',
+                  progress: ['complete', 'complete', 'complete', 'complete'],
+                  progressChipLabel: 'Completed',
+                  chipBackgroundColor: '#CFE9C5',
+                  chipTextColor: '#37804D',
+                  chipBackgroundHoverColor: '#b5d6a8',
+                  pointerEventsState: 'none'
+              }))
+          }, 2000)
+      }, 4000)
+
   }, []);
 
   return (

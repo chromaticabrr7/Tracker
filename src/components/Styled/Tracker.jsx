@@ -11,35 +11,88 @@ import {
     IconCircle, 
     IconShieldLockFilled, 
     IconDirectionSignFilled,
-    IconCircleArrowRightFilled } from '@tabler/icons-react';
+    IconCircleArrowRightFilled,
+    IconCheck,
+    IconPointFilled } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 import ButtonPrimary, { ButtonSecondary } from '../Tiles/Button';
 
 const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
+    const getCheckColor = (progress) =>  {
+        switch (progress) {
+            case 'incomplete': 
+                return '0';
+            case 'pending': 
+                return '0';
+            case 'complete':
+                return '1';
+            default:
+                return '0';
+        }
+    }
+
+    const getStatusLightColor = (progress) => {
+        switch (progress) {
+            case 'incomplete':
+                return 'rgba(0, 0, 0, 0.2)';
+            case 'pending':
+                return '#AE810B';
+            default: 
+                return 'rgba(0, 0, 0, 0.2)';
+        }
+    }
+
     return (
         <>
             <DeploymentTrackerContainer>
-                <Container style={{padding: '16px 16px 0px 16px'}}>
+                <Container style={{padding: '16px 16px 0px 16px', gap: '16px'}}>
                     <ProgressChip deploymentState={deploymentState} onDeploy={onDeploy}/>
-                    <Container style={{fontSize: '20px', fontWeight: '600', lineHeight: '30px', marginBottom: '16px'}}>
+                    <Container style={{fontSize: '20px', fontWeight: '600', lineHeight: '30px'}}>
                         deploy-7
                     </Container>
-                    <Container style={{marginBottom: '16px'}}>
-                        <TrackerContainer>
-                            {deploymentState.progress.map((isComplete, index) => (
-                                <Checkpoint key={index} status={isComplete ? 'complete' : 'incomplete'} />
-                            ))}
-                        </TrackerContainer>
-                    </Container>
                     <Container style={{flexDirection: 'row', gap: '4px'}}>
-                        <span style={{fontSize: '16px', fontWeight: '600', lineHeight: '24px'}}>Current step:</span>
-                        <span style={{fontSize: '16px', fontWeight: '400', lineHeight: '24px'}}>{deploymentState.stageReadout}</span>
+                        <span style={{fontSize: '14px', fontWeight: '600', lineHeight: '20px'}}>Current step:</span>
+                        <span style={{fontSize: '14px', fontWeight: '400', lineHeight: '20px'}}>{deploymentState.stageReadout}</span>
+                    </Container>
+                    <Container>
+                        <TrackerContainer>
+                            {deploymentState.progress.map((deployProgress, index) => (
+                                <Checkpoint key={index} status={deployProgress} style={{width: 'auto', padding: '0px 6px 0px 4px', display: 'flex', gap: '4px'}}>
+                                    {deployProgress &&
+                                        <motion.div
+                                            key={deployProgress}
+                                            // animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0, opacity: 0 }}
+                                            transition={{ type: 'spring', duration: 0.6 }}
+                                        >
+                                            {(deployProgress === 'incomplete' || deployProgress === 'pending') && 
+                                                <IconPointFilled style={{width: '14px', color: getStatusLightColor(deployProgress)}}/>
+                                            }
+                                            <motion.div
+                                                key={deployProgress}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                transition={{ type: 'spring', duration: 0.6 }}
+                                            >
+                                                {(deployProgress === 'complete') &&
+                                                    <IconCheck stroke={3} style={{color: '#37804D', width: '14px', opacity: getCheckColor(deployProgress)}} status={deployProgress ? 'complete' : 'incomplete'}/>
+                                                }
+                                            </motion.div>
+                                        </motion.div>
+                                    }
+                                    <span style={{fontFamily: 'Roboto Mono', fontSize: '14px', fontWeight: '500'}}>{deploymentState.environment[index]}</span>
+                                </Checkpoint>
+                            ))}
+                            <TrackerProgressContainer>
+                                <TrackerProgressBar deploymentState={deploymentState.state}/>
+                            </TrackerProgressContainer>
+                        </TrackerContainer>
                     </Container>
                     <FloatingContainer className={deploymentState.state === 'APPROVAL' ? 'show' : ''}>
                         <Container style={{gap: '8px'}}>
                             <Container style={{flexDirection: 'row', gap: '8px'}}>
-                                <IconAlertCircleFilled />
+                                <IconAlertCircleFilled style={{width: '20px'}}/>
                                 <span style={{fontSize: '16px', fontWeight: '500', lineHeight: '24px'}}>Manual approval</span>
                             </Container>
                             <span style={{fontSize: '14px', fontWeight: '400', color: 'rgba(255, 255, 255, 0.8)', lineHeight: '24px'}}>Would you like to approve this push and continue deployment?</span>
@@ -52,7 +105,7 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                 </Container>
                 <Divider />
                 <Container style={{padding: '0px 16px 16px 16px'}}>
-                    <span style={{fontSize: '14px', fontWeight: '600', lineHeight: '24px', marginBottom: '16px'}}>What changed?</span>
+                    <span style={{fontSize: '14px', fontWeight: '600', lineHeight: '24px', marginBottom: '16px'}}>What's changing?</span>
                     <Container style={{flexDirection: 'row', gap: '16px', marginBottom: '0px'}}>
                         <ConfigBeforeContainer>
                             <Chip>core-api-6</Chip>
@@ -80,6 +133,7 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
 const ProgressChip = ({ deploymentState, onDeploy }) => {
     const textRef = useRef(null);
     const [chipWidth, setChipWidth] = useState(0);
+    const [hasInteracted, setHasInteracted] = useState(false);
 
     useEffect(() => {
         if (textRef.current) {
@@ -88,13 +142,16 @@ const ProgressChip = ({ deploymentState, onDeploy }) => {
         }
     }, [deploymentState.progressChipLabel]);
 
+    useEffect(() => {
+        setHasInteracted(true);
+    }, []);
+
 
     return (
         <ButtonChip
             as={motion.button}
             onClick={onDeploy}
-            animate={{ width: chipWidth}}
-            initial={false}
+            animate={{ width: chipWidth }}
             transition={{ duration: 0.02, ease: 'easeOut' }}
             chipBackgroundColor={deploymentState.chipBackgroundColor}
             chipTextColor={deploymentState.chipTextColor}
@@ -120,6 +177,12 @@ const ProgressChip = ({ deploymentState, onDeploy }) => {
                 </>
             }
             {deploymentState.state === 'COMPLETING' &&
+                <>
+                    <Loader style={{position: 'absolute', left: '8px', width: '16px', opacity: '80%'}}/>
+                    <span style={{width: '20px'}}></span>
+                </>
+            }
+            {deploymentState.state === 'WRAPPING' &&
                 <>
                     <Loader style={{position: 'absolute', left: '8px', width: '16px', opacity: '80%'}}/>
                     <span style={{width: '20px'}}></span>
@@ -185,7 +248,7 @@ const FloatingContainer = styled(Container)`
     display: flex;
     flex-direction: column;
     gap: 16px;
-    top: 96px;
+    top: 147px;
     left: 8px;
     right: 8px;
     background: rgba(0, 0, 0, 0.7);
@@ -303,25 +366,91 @@ const TrackerContainer = styled.div`
     gap: 4px;
 `;
 
-// const TrackerProgressBar = styled.div`
-//     height: 24px;
-//     width: 100%;
-//     background-color: #83BC82;
-//     mix-blend-mode: multiply;
-//     position: absolute;
-//     top: 0;
-//     bottom: 0;
-//     left: 0;
-//     border-radius: 24px;
-// `;
+const TrackerProgressBar = styled.div`
+    width: ${(props) => getTrackerProgressBarWidth(props.deploymentState)};
+    height: 1.5px;
+    background-color: #37804D;
+    position: absolute;
+    border-radius: 24px;
+    transition: all 0.3s ease-out;
+`;
+
+const getTrackerProgressBarWidth = (state) => {
+    switch(state) {
+        case 'READY':
+            return '0';
+        case 'DEPLOYING':
+            return '0%';
+        case 'APPROVAL':
+            return '40%';
+        case 'COMPLETING':
+            return '60%';
+        case 'WRAPPING':
+            return '60%';
+        case 'COMPLETED':
+            return '100%';
+        default:
+            return '0';
+    }
+};
+
+const TrackerProgressContainer = styled(TrackerProgressBar)`
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    width: 100%;  
+    overflow: hidden;
+    top: 11px;
+`;
+
+const getCheckpointProgress = (status) => {
+    switch(status) {
+        case 'incomplete':
+            return {
+                background: '#FFFFFF',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                textColor: 'rgba(0, 0, 0, 0.7)'
+            };
+        case 'pending':
+            return {
+                background: '#F9F2D4',
+                borderColor: '#AE810B',
+                textColor: '#AE810B'
+            };
+        case 'complete':
+            return {
+                background: '#eff8ec',
+                borderColor: '#37804D',
+                textColor: '#37804D'
+            };
+        default:
+            return {
+                background: '#FFFFFF',
+                borderColor: 'rgba(0, 0, 0, 0.2)',
+                textColor: 'rgba(0, 0, 0, 0.7)'
+            };
+    }
+}
 
 const Checkpoint = styled.div`
-    display: inline-block;  
+    display: flex;  
+    justify-content: center;
+    align-items: center;
     height: 24px;
-    width: 100%;
-    border-radius: 6px;
-    background-color: ${(props) => (props.status === "complete" ? "#83BC82" : "rgba(0, 0, 0, 0.05)")};
-    border: 1px solid ${(props) => (props.status === "complete"? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0)")};
+    width: 24px;
+    border-radius: 8px;
+    background-color: ${(props) => getCheckpointProgress(props.status).background};
+    border: 
+        1.5px
+        solid 
+        ${(props) => getCheckpointProgress(props.status).borderColor}
+    ;
+    box-shadow: ${(props) => (props.status === 'pending' ? '0px 0px 0px 4px #ebd8a9' : '0px 0px 0px 0px #ebd8a9')};
+    z-index: 2;
+    transition: all 0.2s ease-out;
+
+    span {
+        color: ${(props) => getCheckpointProgress(props.status).textColor}
+    }
 `;
 
 const Loader = styled.div`
