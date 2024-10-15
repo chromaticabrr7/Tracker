@@ -19,6 +19,16 @@ import styled from 'styled-components';
 import ButtonPrimary, { ButtonSecondary } from '../Tiles/Button';
 
 const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
+    const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsDrawerVisible(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
     const getCheckColor = (progress) =>  {
         switch (progress) {
             case 'incomplete': 
@@ -46,7 +56,7 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
     return (
         <>
             <DeploymentTrackerContainer>
-                <Container style={{padding: '16px 16px 0px 16px', gap: '16px'}}>
+                <Container style={{padding: '16px 16px 16px 16px', gap: '16px', borderRadius: '16px', background: 'white', boxShadow: '0px 0px 0px 1px rgba(0, 0, 0, 0.1), 0px 6.155px 10.477px 0px rgba(0, 0, 0, 0.04), 0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.03), 0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.02)'}}>
                     <ProgressChip deploymentState={deploymentState} onDeploy={onDeploy}/>
                     <Container style={{fontSize: '20px', fontWeight: '600', lineHeight: '30px'}}>
                         deploy-7
@@ -103,8 +113,8 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                         </Container>
                     </FloatingContainer>
                 </Container>
-                <Divider />
-                <Container style={{padding: '0px 16px 16px 16px'}}>
+                {/* <Divider /> */}
+                <DrawerContainer className={isDrawerVisible ? 'show' : ''}>
                     <span style={{fontSize: '14px', fontWeight: '600', lineHeight: '24px', marginBottom: '16px'}}>What's changing?</span>
                     <Container style={{flexDirection: 'row', gap: '16px', marginBottom: '0px'}}>
                         <ConfigBeforeContainer>
@@ -124,7 +134,7 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                             </Container>
                         </ConfigAfterContainer>
                     </Container>
-                </Container>
+                </DrawerContainer>
             </DeploymentTrackerContainer>
         </>
     );
@@ -211,16 +221,15 @@ const ProgressChip = ({ deploymentState, onDeploy }) => {
 
 const DeploymentTrackerContainer = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: column; 
     width: 400px;
     border-radius: 16px;
-    background-color: white;
+    background-color: rgba(0, 0, 0, 0.02);
     box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1), 0px 20.536px 34.955px 0px rgba(0, 0, 0, 0.05), 0px 10.98px 18.689px 0px rgba(0, 0, 0, 0.04), 0px 6.155px 10.477px 0px rgba(0, 0, 0, 0.04), 0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.03), 0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.02);
     max-height: 500px;
     animation-name: slide-on-load;
-    animation-duration: 1s;
-    transition: all 0.3s ease-in-out;
+    animation-duration: 0.5s;
+    overflow: hidden;
 
     @keyframes slide-on-load {
         0% {
@@ -240,6 +249,21 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     height: auto;
+`;
+
+const DrawerContainer = styled(Container)`
+    padding: 0px 16px 0px 16px;
+    background: 'rgba(0, 0, 0, 0)';
+    z-index: -2;
+    max-height: 0px;
+    transform: translateY(-220px);
+    transition: max-height 0.3s ease-in-out, padding 0.1s linear, transform 0.28s ease-in-out;
+
+    &.show {
+        padding: 16px 16px 16px 16px;
+        max-height: 220px;
+        transform: translateY(0);
+    }
 `;
 
 const FloatingContainer = styled(Container)`
@@ -299,7 +323,7 @@ const ConfigBeforeContainer = styled.div`
     width: auto;
     border-radius: 8px;
     padding: 16px;
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: rgba(0, 0, 0, 0.06);
 `;
 
 const ConfigAfterContainer = styled(ConfigBeforeContainer)`
