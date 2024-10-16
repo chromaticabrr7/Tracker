@@ -20,7 +20,7 @@ function App() {
       setDeploymentState(prevState => ({
           ...prevState,
           state: 'DEPLOYING',
-          stageReadout: 'Deploying to dev',
+          stageReadout: 'Pushing to dev',
           progress: ['pending', 'incomplete', 'incomplete', 'incomplete'],
           progressChipLabel: 'Deploying',
           chipBackgroundColor: '#F9F2D4',
@@ -33,7 +33,7 @@ function App() {
           setDeploymentState(prevState => ({
               ...prevState,
               state: 'DEPLOYING',
-              stageReadout: 'Deploying to staging',
+              stageReadout: 'Pushing to staging',
               progress: ['complete', 'pending', 'incomplete', 'incomplete'],
               progressChipLabel: 'Deploying',
               chipBackgroundColor: '#F9F2D4',
@@ -63,7 +63,7 @@ function App() {
       setDeploymentState(prevState => ({
           ...prevState,
           state: 'COMPLETING',
-          stageReadout: 'Deploying to prod',
+          stageReadout: 'Pushing to prod',
           progress: ['complete', 'complete', 'complete', 'pending'],
           progressChipLabel: 'Deploying',
           chipBackgroundColor: '#F9F2D4',

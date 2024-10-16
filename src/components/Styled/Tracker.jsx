@@ -1,25 +1,21 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
-    IconAlertCircle, 
     IconAlertCircleFilled, 
-    IconLoader2, 
-    IconArrowBadgeRightFilled, 
-    IconHelpOctagonFilled, 
-    IconSquareRoundedCheckFilled, 
-    IconSquare, 
     IconCircleCheckFilled, 
-    IconCircle, 
     IconShieldLockFilled, 
-    IconDirectionSignFilled,
     IconCircleArrowRightFilled,
     IconCheck,
     IconPointFilled } from '@tabler/icons-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import ButtonPrimary, { ButtonSecondary } from '../Tiles/Button';
 
 const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+
+    const toggleDrawer = () => {
+        setIsDrawerVisible(!isDrawerVisible);
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -56,7 +52,8 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
     return (
         <>
             <DeploymentTrackerContainer>
-                <Container style={{padding: '16px 16px 16px 16px', gap: '16px', borderRadius: '16px', background: 'white', boxShadow: '0px 0px 0px 1px rgba(0, 0, 0, 0.1), 0px 6.155px 10.477px 0px rgba(0, 0, 0, 0.04), 0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.03), 0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.02)'}}>
+                <DeployTrackerContentContainer>
+                    {/* Progress chip updates as stages change */}
                     <ProgressChip deploymentState={deploymentState} onDeploy={onDeploy}/>
                     <Container style={{fontSize: '20px', fontWeight: '600', lineHeight: '30px'}}>
                         deploy-7
@@ -72,7 +69,6 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                                     {deployProgress &&
                                         <motion.div
                                             key={deployProgress}
-                                            // animate={{ scale: 1, opacity: 1 }}
                                             exit={{ scale: 0, opacity: 0 }}
                                             transition={{ type: 'spring', duration: 0.6 }}
                                         >
@@ -98,6 +94,16 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                                 <TrackerProgressBar deploymentState={deploymentState.state}/>
                             </TrackerProgressContainer>
                         </TrackerContainer>
+                        {/* <DrawerChip></DrawerChip> */}
+                        {/* <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 309 309" fill="none" style={{position: 'absolute', right: '-12px', bottom: '-12px'}}>
+                            <path d="M115.875 231.75C179.871 231.75 231.75 179.871 231.75 115.875V38.625C231.75 17.293 249.043 0 270.375 0V0C291.707 0 309 17.293 309 38.625V154.5C309 239.828 239.828 309 154.5 309H38.625C17.293 309 0 291.707 0 270.375V270.375C0 249.043 17.293 231.75 38.625 231.75H115.875Z" fill="#D9D9D9"/>
+                        </svg> */}
+                        <DrawerToggle onClick={toggleDrawer}>
+                            <DrawerToggleTooltip className={isDrawerVisible}>Expand for details</DrawerToggleTooltip>
+                            <svg className='drawer-svg' xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 309 309" fill="none">
+                                <path d="M132 264C204.902 264 264 204.902 264 132V22.5C264 10.0736 274.074 0 286.5 0V0C298.926 0 309 10.0736 309 22.5V154.5C309 239.828 239.828 309 154.5 309H22.5C10.0736 309 0 298.926 0 286.5V286.5C0 274.074 10.0736 264 22.5 264H132Z" fill="#D9D9D9"/>
+                            </svg>
+                        </DrawerToggle>
                     </Container>
                     <FloatingContainer className={deploymentState.state === 'APPROVAL' ? 'show' : ''}>
                         <Container style={{gap: '8px'}}>
@@ -112,27 +118,43 @@ const Tracker = ({ deploymentState, onDeploy, onApprove}) => {
                             <ButtonPrimary onClick={onApprove} style={{width: '100%'}}>Approve</ButtonPrimary>
                         </Container>
                     </FloatingContainer>
-                </Container>
+                </DeployTrackerContentContainer>
                 {/* <Divider /> */}
-                <DrawerContainer className={isDrawerVisible ? 'show' : ''}>
-                    <span style={{fontSize: '14px', fontWeight: '600', lineHeight: '24px', marginBottom: '16px'}}>What's changing?</span>
-                    <Container style={{flexDirection: 'row', gap: '16px', marginBottom: '0px'}}>
-                        <ConfigBeforeContainer>
-                            <Chip>core-api-6</Chip>
-                            <Container style={{gap: '0px', fontFamily: 'Roboto Mono', fontSize: '14px', color: 'rgba(0, 0, 0, 0.7)'}}>
-                                <span>image: img-1</span>
-                                <span>cmd: npm start</span>
-                                <span style={{fontWeight: '500'}}>health_check:</span>
-                            </Container>
-                        </ConfigBeforeContainer>
-                        <ConfigAfterContainer>
-                            <Chip>core-api-7</Chip>
-                            <Container style={{gap: '0px', fontFamily: 'Roboto Mono', fontSize: '14px'}}>
-                                <span>image: img-2</span>
-                                <span>cmd: /demo-app</span>
-                                <span style={{fontWeight: '500', color: '#37804D'}}>health_check: /notes</span>
-                            </Container>
-                        </ConfigAfterContainer>
+                <DrawerContainer className={isDrawerVisible ? 'show' : 'close'}>
+                    <Container style={{position: 'absolute', left: '16px', right: '16px', bottom: '16px'}}>
+                        <motion.span style={{fontSize: '14px', fontWeight: '600', lineHeight: '24px', marginBottom: '16px'}}
+                            // key={isDrawerVisible}
+                            // initial={{ opacity: 0, transform: 'translateX(-16px)' }}
+                            // animate={{ opacity: 1, transform: 'translateX(0)' }}
+                            // exit={{ opacity: 0, transform: 'translateX(-16px)' }}
+                            // transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
+                        >What's changing?
+                        </motion.span>
+                        <Container style={{flexDirection: 'row', marginBottom: '0px', width: '100%'}}
+                            // as={motion.div}
+                            // key={isDrawerVisible}
+                            // initial={{ opacity: 0, transform: 'translateX(-16px)' }}
+                            // animate={{ opacity: 1, transform: 'translateX(0)' }}
+                            // exit={{ opacity: 0, transform: 'translateX(-16px)' }}
+                            // transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
+                        >
+                            <ConfigBeforeContainer>
+                                <Chip style={{background: 'none'}}>core-api-6</Chip>
+                                <Container style={{gap: '0px', fontFamily: 'Roboto Mono', fontSize: '14px', color: 'rgba(0, 0, 0, 0.7)'}}>
+                                    <span>image: img-1</span>
+                                    <span>cmd: npm start</span>
+                                    <span style={{fontWeight: '500'}}>health_check:</span>
+                                </Container>
+                            </ConfigBeforeContainer>
+                            <ConfigAfterContainer>
+                                <Chip>core-api-7</Chip>
+                                <Container style={{gap: '0px', fontFamily: 'Roboto Mono', fontSize: '14px'}}>
+                                    <span>image: img-2</span>
+                                    <span>cmd: /demo-app</span>
+                                    <span style={{fontWeight: '500', color: '#37804D'}}>health_check: /notes</span>
+                                </Container>
+                            </ConfigAfterContainer>
+                        </Container>
                     </Container>
                 </DrawerContainer>
             </DeploymentTrackerContainer>
@@ -251,18 +273,35 @@ const Container = styled.div`
     height: auto;
 `;
 
+const DeployTrackerContentContainer = styled(Container)`
+    padding: 16px 16px 16px 16px;
+    gap: 16px;
+    border-radius: 16px;
+    background: white;
+    z-index: 1;
+    box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1), 
+        0px 6.155px 10.477px 0px rgba(0, 0, 0, 0.04),
+        0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.03), 
+        0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.02)
+    ;
+`;
+
 const DrawerContainer = styled(Container)`
     padding: 0px 16px 0px 16px;
     background: 'rgba(0, 0, 0, 0)';
-    z-index: -2;
+    z-index: 0;
+    height: 232px;
     max-height: 0px;
-    transform: translateY(-220px);
-    transition: max-height 0.3s ease-in-out, padding 0.1s linear, transform 0.28s ease-in-out;
+    transition: max-height 0.2s ease-in-out, padding 0.1s linear;
 
     &.show {
         padding: 16px 16px 16px 16px;
-        max-height: 220px;
-        transform: translateY(0);
+        max-height: 232px;
+    }
+
+    &.close {
+        padding: 0px 16px 0px 16px;
+        max-height: 0px;
     }
 `;
 
@@ -294,41 +333,23 @@ const FloatingContainer = styled(Container)`
     }
 `;
 
-const VariableContainer = styled(motion.div)`
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    opacity: 0;
-    max-height: 0;
-    transition: opacity 0.1s ease-in-out, max-height 0.1s ease-in-out;
-    
-    &.show {
-        opacity: 1;
-        max-height: 500px;
-    }
-`;
-
-const Divider = styled.div`
-    height: 1px;  
-    background-color: rgba(0, 0, 0, 0.05);
-    width: 400px;
-`;
-
 const ConfigBeforeContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-    width: auto;
-    border-radius: 8px;
+    border-radius: 8px 0px 0px 8px;
     padding: 16px;
-    background-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    background-color: #f5f5f5;
+    /* background-color: rgba(0, 0, 0, 0.02); */
 `;
 
 const ConfigAfterContainer = styled(ConfigBeforeContainer)`
     background-color: white;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0px 8px 8px 0px;
+    box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1), 0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.05), 0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.03);
 `;
 
 const Chip = styled.div`
@@ -489,6 +510,56 @@ const Loader = styled.div`
         100% {
             transform: rotate(360deg);
         }
+    }
+`;
+
+const DrawerToggle = styled.div`
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    cursor: pointer;
+    
+    .drawer-svg {
+        path {
+            fill: rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease-in;
+            padding: 40px;
+        }
+    }
+
+    &:hover {
+        .drawer-svg {
+            path {
+                fill: rgba(0, 0, 0, 0.4);
+                transition: all 0.2s ease-in;
+                padding: 40px;
+            }
+        }
+    }
+`;
+
+const DrawerToggleTooltip = styled.div`
+    position: absolute;
+    display: block;
+    text-wrap: nowrap;
+    bottom: -32px;
+    right: 0px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0px 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0px 20.536px 34.955px 0px rgba(0, 0, 0, 0.05), 0px 10.98px 18.689px 0px rgba(0, 0, 0, 0.04), 0px 6.155px 10.477px 0px rgba(0, 0, 0, 0.04), 0px 3.269px 5.564px 0px rgba(0, 0, 0, 0.03), 0px 1.36px 2.315px 0px rgba(0, 0, 0, 0.02);
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+
+    &.show {
+        opacity: 1;
+        pointer-events: all;
     }
 `;
 
